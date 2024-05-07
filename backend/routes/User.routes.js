@@ -14,7 +14,7 @@ const Task = require("../models/Task.model");
 const User = require("../models/User.model");
 
 const { roleCheck } = require("../middlewares/roleCheck");
-const { getWeekNumber } = require("../utils");
+// const { getWeekNumber } = require("../utils");
 
 const upload = multer({ dest: "uploads/" });
 
@@ -23,8 +23,18 @@ const upload = multer({ dest: "uploads/" });
 router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
   try {
     const { username, role, fullname, email, isActive, isConfigured, isNotification, isBelongTo, belongTo } = req.body;
-
+    
     const matchStage = {};
+
+    if (isBelongTo === undefined || isBelongTo === true ) {
+      if (req.user.role === "Supervisor"){
+        matchStage.belongTo = req.user.username;
+      } else {
+      }
+    }
+    
+    if (isBelongTo !== undefined) matchStage.isBelongTo = isBelongTo ? true : false;
+    
     if (username) matchStage.username = username;
     if (role) matchStage.role = role;
     if (fullname) matchStage.fullname = { $regex: fullname, $options: "i" };
@@ -32,9 +42,8 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
     if (isActive !== undefined) matchStage.isActive = isActive ? true : false;
     if (isConfigured !== undefined) matchStage.isConfigured = isConfigured ? true : false;
     if (isNotification !== undefined) matchStage.isNotification = isNotification ? true : false;
-    if (isBelongTo !== undefined) matchStage.isBelongTo = isBelongTo ? true : false;
     if (belongTo) matchStage.belongTo = belongTo;
-
+    
     // Aggregate pipeline
     const pipeline = [
       { $match: matchStage },
@@ -86,10 +95,19 @@ router.post("/belong-to/add/:id", roleCheck(["Supervisor", "Root"]), async (req,
     if (["Supervisor", "Root", "Viewer"].includes(user.role)) {
       return res.status(403).json({ message: `Cannot set belong to for ${user.role} users` });
     } else {
+      if (req.user.role === "Root") {
+        const check = await User.findOne({ username: req.body.belongTo });
+        if (check.role === "Supervisor") {
+          user.belongTo = check.username;
+        } else {
+          return res.status(403).json({ message: `Cannot set belong to ${check.role} user` });
+        }
+      } else {
+        user.belongTo = req.user.username;
+      }
       user.isBelongTo = true;
-      user.belongTo = req.user.username;
       await user.save();
-      return res.status(200).json({ message: `User ${user.username} has been successfully assigned to ${req.user.username}` });
+      return res.status(200).json({ message: `User ${user.username} has been successfully assigned to ${user.belongTo}` });
     }
   } catch (err) {
     res.status(500).json({ error: err.message });

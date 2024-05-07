@@ -1,6 +1,6 @@
 // morgan.js
 const morgan = require("morgan");
-const AccessLogData = require("./models/AccessLogData");
+const Log = require("./models/Log.model");
 
 // ANSI color codes for console
 const colors = {
@@ -111,7 +111,7 @@ const logStream = {
       `${date} | User: ${username} | IP: ${clientIP} | Message: ${messageText} | Method: ${methodColor}${method}${reset} | Target: ${url} | Status: ${statusColor}${status}${reset} | Time: ${timeColor}${responseTime} ms${reset} | Length: ${lengthColor}${contentLength}${reset}`
     );
 
-    const logEntry = new AccessLogData({
+    const logEntry = new Log({
       username,
       isActive: isActive === true,
       clientIP,

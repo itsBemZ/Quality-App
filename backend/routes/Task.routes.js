@@ -14,7 +14,7 @@ const Task = require("../models/Task.model");
 const User = require("../models/User.model");
 
 const { roleCheck } = require("../middlewares/roleCheck");
-const { getWeekNumber } = require("../utils");
+// const { getWeekNumber } = require("../utils");
 
 const upload = multer({ dest: "uploads/" });
 
@@ -22,25 +22,29 @@ const upload = multer({ dest: "uploads/" });
 
 router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
   try {
-    const { username, role } = req.user;
-    const { user, task, sequence, category } = req.body;
+    const { task, sequence, category } = req.body;
 
     const query = {};
-
-    if (role === "Auditor") {
-      query.users = username;
-    } else if (user) {
-      query.users = user;
-    }
 
     if (task) query.task = task;
     if (sequence) query.sequence = sequence;
     if (category) query.category = category;
 
+    // Fetch sorted data
     const sortCriteria = { category: 1, sequence: 1 };
+    const tasks = await Task.find(query).sort(sortCriteria).exec();
 
-    const data = await TaskData.find(query).sort(sortCriteria).exec();
-    res.status(200).json(data);
+    // Group tasks by category
+    const categorizedData = tasks.reduce((acc, task) => {
+      // Initialize category array if it doesn't exist
+      if (!acc[task.category]) {
+        acc[task.category] = [];
+      }
+      acc[task.category].push(task);
+      return acc;
+    }, {});
+
+    res.status(200).json(categorizedData);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

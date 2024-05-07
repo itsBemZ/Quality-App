@@ -1,33 +1,14 @@
 const mongoose = require("mongoose");
 
-const TaskSchema = new mongoose.Schema({
-  taskId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Task",
-    unique: true,
-  },
-  task: {
-    type: String,
-    required: true,
-  },
-  category: {
-    type: String,
-    required: true,
-  },
-  sequence: {
-    type: Number,
-    required: true,
-  },
-});
-
 const PlanSchema = new mongoose.Schema({
   crew: {
     type: String,
+    ref: 'Location',
     required: true,
     unique: true,
   },
   tasks: {
-    type: [TaskSchema],
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }],
     default: [],
   },
 });

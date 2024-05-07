@@ -46,14 +46,15 @@ router.post("/register", roleCheck(["Supervisor", "Root"]), async (req, res) => 
 
     await user.save();
     res.locals.message = "User created successfully";
-
-    res.status(201).json({ user, message: res.locals.message });
+    const [password, ...data] = await user;
+    res.status(201).json({ user: data, message: res.locals.message });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 router.post("/login", async (req, res) => {
+
   const { username, password } = req.body;
   try {
     let user = await User.findOne({ username: username }).select("+password").exec();
@@ -104,12 +105,12 @@ router.post("/login", async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
+      // secure: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, //7 days
     });
 
     res.locals.message = "Access granted";
-    res.json({ token, message: res.locals.message });
+    res.json({ token, user, message: res.locals.message });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -161,15 +162,16 @@ router.post("/refresh", async (req, res) => {
 
 router.get("/user", async (req, res) => {
   try {
-    const token = req.header("Authorization").split(" ")[1] || "";
+    // const token = req.header("Authorization").split(" ")[1] || "";
+    const refreshToken = req.cookies["refreshToken"];
 
-    const payload = jwt.verify(token, JWT_SECRET);
+    const payload = jwt.verify(refreshToken, RT_SECRET);
     if (!payload) {
       res.locals.message = "unauthenticated";
       return res.status(401).json({ message: res.locals.message });
     }
 
-    const user = await User.findOne(payload.id);
+    const user = await User.findById(payload.id);
     if (!user) {
       res.locals.message = "unauthenticated";
       return res.status(401).json({ message: res.locals.message });
@@ -190,10 +192,10 @@ router.get("/user", async (req, res) => {
   }
 });
 
-router.post("/logout", async (req, res) => {
+router.delete("/logout", async (req, res) => {
   try {
     const refreshToken = req.cookies["refreshToken"];
-    await Token.delete({ token: refreshToken });
+    await Token.findOneAndDelete({ token: refreshToken });
     res.cookie("refreshToken", "", { httpOnly: true, secure: true, maxAge: 0 });
 
     res.locals.message = "logout success";
