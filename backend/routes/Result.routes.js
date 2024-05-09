@@ -49,17 +49,19 @@ router.post("/", roleCheck(["Auditor", "Root"]), async (req, res) => {
       return res.status(404).json({ message: `Task with ID ${taskId} not found` });
     }
 
-    const { project, family, line } = locationData;
+    const { project, family, line,  } = locationData;
 
     const filter = { date, shift, crew };
+    console.log(filter);
     const resultWithTaskId = await Result.findOne(filter, { tasks: { $elemMatch: { taskId } } });
-    console.log(resultWithTaskId);
-    if (resultWithTaskId.tasks.length >0) {
+    // console.log(resultWithTaskId);
+    if (resultWithTaskId && resultWithTaskId.tasks.length >0) {
       resultWithTaskId.tasks[0].result = result;
       resultWithTaskId.tasks[0].username = username;
       resultWithTaskId.save();
       res.status(200).json(resultWithTaskId);
     } else {
+      console.log("im here");
       // Task with taskId doesn't exist, add new task
       const update = {
         week,
@@ -72,7 +74,7 @@ router.post("/", roleCheck(["Auditor", "Root"]), async (req, res) => {
       };
       const options = { upsert: true, new: true };
       const updatedResult = await Result.findOneAndUpdate(filter, update, options);
-      res.status(200).json(updatedResult); // Respond with the updated document
+      res.status(200).json(updatedResult); 
     }
 
   } catch (err) {

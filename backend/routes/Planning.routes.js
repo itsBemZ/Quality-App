@@ -23,11 +23,14 @@ const upload = multer({ dest: "uploads/" });
 router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
   try {
     const { role } = req.user;
-    const { username, week, shift, crew, task } = req.query;
-     
+    const { username } = req.query;
+
     const currentDate = new Date();
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
     date.setHours(date.getHours() + 1);
+    const week = getWeekNumber(date);
+
+    const shift = "morning";
 
     const query = {};
     if (role === "Auditor") {
@@ -39,37 +42,43 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
     if (week) query.week = week;
     if (shift) query.shift = shift;
 
-    // Fetch planning data with deep population for tasks and crew details
     const plans = await Planning.find(query).populate({
       path: "plans",
-      populate: [
-        {
-          path: "tasks",
-          match: task ? { task: task } : {},
-          model: "task",
-          select: "_id category sequence task",
-          options: { lean: true },
-          transform: doc => {
-            doc.result = "NA";
-            return doc;
-          }
-        },
-        // {
-        //   path: "tasks",
-        //   model: "result",
-        //   select: "tasks", // Adjust the fields you want to select
-        //   match: { tasks: task },
-        //   options: { lean: true },
-        // }
-      ]
+      populate: {
+        path: "tasks",
+        model: "Task",
+        select: "_id category sequence task",
+        options: { lean: true },
+        transform: doc => {
+              doc.result = "NA";
+              return doc;
+            }
+      }
     });
 
-    // Check if the data exists
-    if (plans.length) {
-      res.status(200).json(plans);
-    } else {
-      res.status(404).json({ message: "No planning data found." });
-    }
+    const crewsResults = await Result.find({ week: week, date: date, shift: shift }).populate({
+      path: "tasks.taskId",
+      model: "Task"
+    });
+
+    console.log(crewsResults);
+
+    // Map results to tasks
+    const plansWithResults = plans.map(plan => {
+      plan.plans = plan.plans.map(crewPlan => {
+        const crewResults = crewsResults.find(cr => cr.crew === crewPlan.crew);
+        if (crewResults) {
+          crewPlan.tasks = crewPlan.tasks.map(task => {
+            const taskResult = crewResults.tasks.find(t => t.taskId._id.toString() === task._id.toString());
+            return { ...task, result: taskResult ? taskResult.result : "NA" };
+          });
+        }
+        return crewPlan;
+      });
+      return plan;
+    });
+
+    res.status(200).json(plansWithResults);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

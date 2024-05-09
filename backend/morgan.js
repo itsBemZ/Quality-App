@@ -107,9 +107,9 @@ const logStream = {
     const lengthColor = getColorByLength(contentLength);
     const reset = colors.reset;
 
-    console.log(
-      `${date} | User: ${username} | IP: ${clientIP} | Message: ${messageText} | Method: ${methodColor}${method}${reset} | Target: ${url} | Status: ${statusColor}${status}${reset} | Time: ${timeColor}${responseTime} ms${reset} | Length: ${lengthColor}${contentLength}${reset}`
-    );
+    // console.log(
+    //   `${date} | User: ${username} | IP: ${clientIP} | Message: ${messageText} | Method: ${methodColor}${method}${reset} | Target: ${url} | Status: ${statusColor}${status}${reset} | Time: ${timeColor}${responseTime} ms${reset} | Length: ${lengthColor}${contentLength}${reset}`
+    // );
 
     const logEntry = new Log({
       username,

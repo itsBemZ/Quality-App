@@ -8,7 +8,7 @@ const PlanSchema = new mongoose.Schema({
     unique: true,
   },
   tasks: {
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }],
+    type: [],
     default: [],
   },
 });
@@ -30,18 +30,6 @@ const PlanningSchema = new mongoose.Schema(
     plans: {
       type: [PlanSchema],
       default: [],
-    },
-  },
-  {
-    timestamps: {
-      currentTime: () => {
-        const now = new Date();
-        now.setHours(now.getHours() + 1);
-        return now.toLocaleString("en-US", {
-          timeZone: "Africa/Casablanca",
-          hour12: true,
-        });
-      },
     },
   }
 );

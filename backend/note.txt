@@ -1,0 +1,85 @@
+router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
+    try {
+      const { role } = req.user;
+      const { username, week, shift, crew, task } = req.query;
+  
+      const currentDate = new Date();
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+      date.setHours(date.getHours() + 1);
+  
+      const query = {};
+      if (role === "Auditor") {
+        query.username = req.user.username;
+      } else {
+        if (username) query.username = username;
+      }
+  
+      if (week) query.week = week;
+      if (shift) query.shift = shift;
+  
+      // Fetch planning data with deep population for tasks and crew details
+      const plans = await Planning.find(query).populate({
+        path: "plans",
+        populate: [
+          {
+            path: "tasks",
+            match: task ? { task: task } : {},
+            model: "task",
+            select: "_id category sequence task",
+            options: { lean: true },
+            // transform: doc => {
+            //   doc.result = "NA";
+            //   return doc;
+            // }
+          },
+        ]
+      });
+  
+      const tasksResult = await Result.findOne({ week: week, date: date, shift: shift, crew: crew });
+  
+      const plansWithResult = plans.map(plan => {
+        plan.plans.map(crewPlan => {
+          if (crewPlan.crew === crew) {
+            crewPlan.tasks.map(task => {
+              const result = tasksResult.tasks.find(taskResult => taskResult.taskId.toString() === task._id.toString());
+              return { ...task, result: result ? result.result : "NA" };
+            });
+          }
+        });
+      });
+  
+      console.log("line 73:", plansWithResult);
+      res.status(200).json(plansWithResult);
+  
+      // Check if the data exists
+      // if (plans.length) {
+      //   res.status(200).json(plans);
+      // } else {
+      //   res.status(404).json({ message: "No planning data found." });
+      // }
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+
+  {
+    timestamps: {
+      currentTime: () => {
+        const now = new Date();
+        now.setHours(now.getHours() + 1);
+        return now.toLocaleString("en-US", {
+          timeZone: "Africa/Casablanca",
+          hour12: true,
+        });
+      },
+    },
+  }
+
+
+  ResultSchema.pre('findOneAndUpdate', function (next) {
+    const date = new Date(this.date);
+    date.setHours(date.getHours() + 1);
+    this.date = date;
+    next();
+  });
