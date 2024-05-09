@@ -14,7 +14,7 @@ const Task = require("../models/Task.model");
 const User = require("../models/User.model");
 
 const { roleCheck } = require("../middlewares/roleCheck");
-// const { getWeekNumber } = require("../utils");
+const { getWeekNumber } = require("../utils");
 
 const upload = multer({ dest: "uploads/" });
 
@@ -22,112 +22,59 @@ const upload = multer({ dest: "uploads/" });
 
 router.post("/", roleCheck(["Auditor", "Root"]), async (req, res) => {
   try {
-    const { date, shift, crew, tasks } = req.body;
-    const user = req.user.username;
+    const { crew, taskId, shift, result } = req.body;
+    // const username = req.user.username;
+    const username = "41";
 
-    // Convert string date to Date object
-    const dateObj = new Date(date);
-    const week = getWeekNumber(dateObj);
+    const currentDate = new Date();
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+    date.setHours(date.getHours() + 1);
+    const week = getWeekNumber(date);
 
-    // Fetch location information based on the crew
-    const locationData = await LocationData.findOne({ crew });
-    if (!locationData) {
-      return res
-        .status(404)
-        .json({ message: "No location data found for the given crew." });
+    if (req.user.role === "Auditor") { }
+
+    const planning = await Planning.findOne({ week: week, shift: shift, username: username });
+    if (!planning) {
+      return res.status(404).json({ message: `No planning found for week: ${week} and shift: ${shift} of ${username} User` });
     }
 
-    // Extract project, family, and line from locationData
+    const locationData = await Location.findOne({ crew });
+    if (!locationData) {
+      return res.status(404).json({ message: `No location data found for crew: ${crew}` });
+    }
+
+    const taskData = await Task.findById(taskId);
+    // const { category, sequence, task } = taskData;
+    if (!taskData) {
+      return res.status(404).json({ message: `Task with ID ${taskId} not found` });
+    }
+
     const { project, family, line } = locationData;
 
-    const planningData = await Planning.findOne({ week });
-    if (!planningData) {
-      return res
-        .status(404)
-        .json({ message: "No planning data found for the given crew." });
-    }
-
-    // Check if the user has a plan on that crew and shift
-    const hasPlan =
-      planningData.crews.some(
-        (c) => c.crew === crew && c.users.includes(user)
-      ) &&
-      planningData.shifts.some(
-        (s) => s.shift === shift && s.users.includes(user)
-      );
-
-    if (!hasPlan) {
-      return res
-        .status(404)
-        .json({
-          message:
-            "No plan found for this user with the specified crew and shift.",
-        });
-    }
-
-    // Fetch task details for each taskId
-    const taskDetails = await Promise.all(
-      tasks.map(async ({ taskId, result }) => {
-        const taskData = await TaskData.findById(taskId);
-        if (!taskData) {
-          throw new Error(`Task with ID ${taskId} not found`);
-        }
-        return {
-          taskId: taskData._id,
-          task: taskData.task,
-          category: taskData.category,
-          sequence: taskData.sequence,
-          result: result,
-        };
-      })
-    );
-
-    // Find the document or create a new one if it doesn't exist
-    const existingResult = await ResultData.findOne({ date, shift, crew });
-
-    if (existingResult) {
-      // Merge tasks: update existing tasks or push new tasks
-      const updatedTasks = taskDetails
-        .map((newTask) => {
-          const existingTaskIndex = existingResult.tasks.findIndex((t) =>
-            t.taskId.equals(newTask.taskId)
-          );
-          if (existingTaskIndex > -1) {
-            existingResult.tasks[existingTaskIndex] = newTask; // Update existing task
-            return null; // Return null to filter out later
-          } else {
-            return newTask; // Return new task to be added
-          }
-        })
-        .filter((task) => task !== null); // Filter out nulls (updated tasks)
-
-      // Update the document with new and updated tasks
-      existingResult.tasks.push(...updatedTasks);
-      existingResult.week = week;
-      existingResult.project = project;
-      existingResult.family = family;
-      existingResult.line = line;
-      existingResult.user = user;
-      await existingResult.save();
+    const filter = { date, shift, crew };
+    const resultWithTaskId = await Result.findOne(filter, { tasks: { $elemMatch: { taskId } } });
+    console.log(resultWithTaskId);
+    if (resultWithTaskId.tasks.length >0) {
+      resultWithTaskId.tasks[0].result = result;
+      resultWithTaskId.tasks[0].username = username;
+      resultWithTaskId.save();
+      res.status(200).json(resultWithTaskId);
     } else {
-      // Create a new document if not found
-      const resultData = new ResultData({
+      // Task with taskId doesn't exist, add new task
+      const update = {
         week,
-        date,
-        shift,
         project,
         family,
         line,
-        crew,
-        tasks: taskDetails,
-        user,
-      });
-      await resultData.save();
-      res.status(201).json(resultData);
-      return;
+        $addToSet: {
+          tasks: { taskId:taskId, result:result, username:username }
+        }
+      };
+      const options = { upsert: true, new: true };
+      const updatedResult = await Result.findOneAndUpdate(filter, update, options);
+      res.status(200).json(updatedResult); // Respond with the updated document
     }
 
-    res.status(200).json(existingResult);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -174,7 +121,7 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
       crew: 1,
     };
 
-    const data = await ResultData.find(query).sort(sortCriteria).exec();
+    const data = await Result.find(query).sort(sortCriteria).exec();
     res.status(200).json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });

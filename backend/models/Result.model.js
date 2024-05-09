@@ -6,21 +6,10 @@ const TaskSchema = new mongoose.Schema({
     ref: "Task",
     unique: true,
   },
-  task: {
-    type: String,
-    required: true,
-  },
-  category: {
-    type: String,
-    required: true,
-  },
-  sequence: {
-    type: Number,
-    required: true,
-  },
   result: {
     type: String,
-    default: "",
+    default: "NA",
+    enum: ["OK", "NOK", "NA"],
   },
   username: {
     type: String,
@@ -34,12 +23,10 @@ const ResultSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
     date: {
       type: Date,
       required: true,
     },
-
     shift: {
       type: String,
       required: true,
@@ -59,16 +46,9 @@ const ResultSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
     crew: {
       type: String,
-      default: "",
-    },
-
-    crewID: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Location",
-      unique: true,
+      required: true,
     },
 
     tasks: {
@@ -89,6 +69,13 @@ const ResultSchema = new mongoose.Schema(
     },
   }
 );
+
+ResultSchema.pre('findOneAndUpdate', function (next) {
+  const date = new Date(this.date);
+  date.setHours(date.getHours() + 1);
+  this.date = date;
+  next();
+});
 
 const Result = mongoose.model("result", ResultSchema);
 
