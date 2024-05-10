@@ -245,9 +245,9 @@ router.get("/export/excel/", roleCheck(["Root"]), async (req, res) => {
     res.setHeader("Content-Disposition", `attachment; filename="Access-Log.xlsx"`);
 
     await workbook.xlsx.write(res);
-    
+
     // await workbook.xlsx.writeFile("excel/Access-Log.xlsx").then(() => console.log("Export complete.")).catch((error) => console.error("Something went wrong:", error));
-    
+
     res.end();
   } catch (err) {
     res.status(500).json({ error: err.message });

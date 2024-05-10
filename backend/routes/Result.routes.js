@@ -23,15 +23,19 @@ const upload = multer({ dest: "uploads/" });
 router.post("/", roleCheck(["Auditor", "Root"]), async (req, res) => {
   try {
     const { crew, taskId, shift, result } = req.body;
-    // const username = req.user.username;
-    const username = "41";
+    const username = req.user.username;
 
     const currentDate = new Date();
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
     date.setHours(date.getHours() + 1);
     const week = getWeekNumber(date);
 
-    if (req.user.role === "Auditor") { }
+    if (req.user.role === "Auditor") {
+      const username = req.user.username;
+    }
+  else{
+    const username = "41";
+  }
 
     const planning = await Planning.findOne({ week: week, shift: shift, username: username });
     if (!planning) {
@@ -49,13 +53,14 @@ router.post("/", roleCheck(["Auditor", "Root"]), async (req, res) => {
       return res.status(404).json({ message: `Task with ID ${taskId} not found` });
     }
 
-    const { project, family, line,  } = locationData;
+    const { project, family, line, } = locationData;
 
     const filter = { date, shift, crew };
     console.log(filter);
     const resultWithTaskId = await Result.findOne(filter, { tasks: { $elemMatch: { taskId } } });
+
     // console.log(resultWithTaskId);
-    if (resultWithTaskId && resultWithTaskId.tasks.length >0) {
+    if (resultWithTaskId && resultWithTaskId.tasks.length > 0) {
       resultWithTaskId.tasks[0].result = result;
       resultWithTaskId.tasks[0].username = username;
       resultWithTaskId.save();
@@ -69,12 +74,12 @@ router.post("/", roleCheck(["Auditor", "Root"]), async (req, res) => {
         family,
         line,
         $addToSet: {
-          tasks: { taskId:taskId, result:result, username:username }
+          tasks: { taskId: taskId, result: result, username: username }
         }
       };
       const options = { upsert: true, new: true };
       const updatedResult = await Result.findOneAndUpdate(filter, update, options);
-      res.status(200).json(updatedResult); 
+      res.status(200).json(updatedResult);
     }
 
   } catch (err) {
@@ -129,6 +134,5 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
     res.status(500).json({ error: err.message });
   }
 });
-
 
 module.exports = router;

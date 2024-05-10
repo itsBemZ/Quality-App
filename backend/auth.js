@@ -205,6 +205,72 @@ router.delete("/logout", async (req, res) => {
   }
 });
 
+router.post("/change-password", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
+  let message = "";
+  try {
+    const { password, newPassword } = req.body;
+    const user = await User.findById(req.user.id).select("+password");
+
+    if (!password || !newPassword) {
+      message = "Please, fill all the fields";
+      return res.status(400).json({ message });
+    }
+
+    if (!user) {
+      message = "User does not exist";
+      return res.status(400).json({ message });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      message = "Incorrect current password";
+      return res.status(400).json({ message });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedNewPassword;
+    user.isConfigured = true;
+    await user.save();
+
+    message = "Password changed successfully";
+
+    res.json({ message });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put("/change-name", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
+  let message = "";
+  try {
+    const { fullname, password } = req.body;
+    const user = await User.findById(req.user.id);
+
+    if (!fullname || !password) {
+      message = "Please, fill all the fields";
+      return res.status(400).json({ message });
+    }
+
+    if (!user) {
+      message = "User does not exist";
+      return res.status(400).json({ message });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      message = "Incorrect current password";
+      return res.status(400).json({ message });
+    }
+
+    user.fullname = fullname;
+    await user.save();
+    message = "Name changed successfully";
+    res.json({ message });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Root and Users setup functions
 async function setupRootUser() {
   try {

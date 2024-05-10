@@ -14,33 +14,41 @@ const Task = require("../models/Task.model");
 const User = require("../models/User.model");
 
 const { roleCheck } = require("../middlewares/roleCheck");
-const { getWeekNumber } = require("../utils");
+const { getWeekNumber, getShift } = require("../utils");
 
 const upload = multer({ dest: "uploads/" });
 
-// router
+// router:
 
 router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
   try {
     const { role } = req.user;
-    const { username } = req.query;
+    const { username, week, date, shift } = req.query;
 
-    const currentDate = new Date();
-    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-    date.setHours(date.getHours() + 1);
-    const week = getWeekNumber(date);
-
-    const shift = "morning";
+    const currentDate = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+    const currentHour = new Date().getHours();
+    const currentShift = await getShift(currentHour);
+    const currentWeek = await getWeekNumber(currentDate);
 
     const query = {};
+
+    if (week) {
+      query.week = week;
+    } else {
+      query.week = currentWeek;
+    }
+
+    if (shift) {
+      query.shift = shift;
+    } else {
+      query.shift = currentShift;
+    }
+
     if (role === "Auditor") {
       query.username = req.user.username;
     } else {
       if (username) query.username = username;
     }
-
-    if (week) query.week = week;
-    if (shift) query.shift = shift;
 
     const plans = await Planning.find(query).populate({
       path: "plans",
@@ -50,18 +58,22 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
         select: "_id category sequence task",
         options: { lean: true },
         transform: doc => {
-              doc.result = "NA";
-              return doc;
-            }
+          doc.result = "NA";
+          return doc;
+        }
       }
     });
 
-    const crewsResults = await Result.find({ week: week, date: date, shift: shift }).populate({
+    const resultFilter = {
+      week: week ? week : currentWeek,
+      date: date ? date : currentDate,
+      shift: shift ? shift : currentShift,
+    };
+    const crewsResults = await Result.find(resultFilter).populate({
       path: "tasks.taskId",
       model: "Task"
     });
 
-    console.log(crewsResults);
 
     // Map results to tasks
     const plansWithResults = plans.map(plan => {
