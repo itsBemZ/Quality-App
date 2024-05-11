@@ -1,0 +1,120 @@
+.container {
+    width: 100vw;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.underList {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1rem;
+  list-style: none;
+  width: 100%;
+  flex-wrap: wrap;
+  padding: 0;
+  margin: auto 0;
+}
+.underList li {
+  font-size: medium;
+  text-transform: uppercase;
+  font-weight: bold;
+  color: aliceblue;
+  opacity: 0.5;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+.underList li:hover {
+  opacity: 1;
+}
+.taskContariner {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 2px solid #f84018;
+}
+.details,
+.action {
+  width: 100%;
+}
+.sequ,
+.cat,
+.task {
+  display: flex;
+  flex-direction: column;
+  color: white;
+  gap: 10px;
+}
+.details,
+.action {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+.details {
+  padding: 10px;
+}
+.til {
+  color: #f84018;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.sequ {
+  width: 10%;
+}
+.cat {
+  width: 15%;
+}
+.task {
+  width: 65%;
+}
+.action {
+  justify-content: space-around;
+  text-transform: uppercase;
+}
+.dataDet {
+  font-size: small;
+  word-wrap: break-word;
+}
+.sequ .dataDet {
+  font-size: larger;
+}
+.sequs,
+.sequsnk,
+.sequsok {
+  color: aliceblue;
+  height: 2rem;
+  width: 33%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+.sequsok {
+  color: #006b63;
+}
+.sequsnk {
+  color: #cf3335;
+}
+.notf{
+    margin: auto 0;
+}
+.notf h3 {
+  color: #cf3335;
+  text-transform: uppercase;
+  margin: 0;
+}
+/* @media (width >= 750px) {
+  .notf img {
+    width: 70%;
+  }
+} */
+/* @media (width > 1100px) {
+  .notf img {
+    width: 70%;
+  }
+} */

@@ -46,15 +46,14 @@ router.post("/register", roleCheck(["Supervisor", "Root"]), async (req, res) => 
 
     await user.save();
     res.locals.message = "User created successfully";
-    const [password, ...data] = await user;
-    res.status(201).json({ user: data, message: res.locals.message });
+    const [password, ...data] = user;
+    res.status(201).json({ user, message: res.locals.message });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 router.post("/login", async (req, res) => {
-
   const { username, password } = req.body;
   try {
     let user = await User.findOne({ username: username }).select("+password").exec();
@@ -90,7 +89,7 @@ router.post("/login", async (req, res) => {
         isActive: user.isActive,
       },
       JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "8h" }
     );
 
     const expired_at = new Date();
@@ -162,10 +161,10 @@ router.post("/refresh", async (req, res) => {
 
 router.get("/user", async (req, res) => {
   try {
-    // const token = req.header("Authorization").split(" ")[1] || "";
-    const refreshToken = req.cookies["refreshToken"];
+    // const refreshToken = req.cookies["refreshToken"];
+    const token = req.header("Authorization").split(" ")[1] || "";
 
-    const payload = jwt.verify(refreshToken, RT_SECRET);
+    const payload = jwt.verify(token, JWT_SECRET);
     if (!payload) {
       res.locals.message = "unauthenticated";
       return res.status(401).json({ message: res.locals.message });
@@ -192,6 +191,101 @@ router.get("/user", async (req, res) => {
   }
 });
 
+router.post("/change-password", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
+  try {
+
+    const { password, newPassword } = req.body;
+    const user = await User.findById(req.user.id).select("+password");
+
+    if (!password || !newPassword) {
+      res.locals.message = "Please, fill all the fields";
+      return res.status(400).json({ message: res.locals.message });
+    }
+
+    if (!user) {
+      res.locals.message = "User does not exist";
+      return res.status(400).json({ message: res.locals.message });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      res.locals.message = "Incorrect current password";
+      return res.status(400).json({ message: res.locals.message });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedNewPassword;
+    user.isConfigured = true;
+    await user.save();
+
+    res.locals.message = "Password changed successfully";
+
+    res.json({ message: res.locals.message });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put("/change-name", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
+  try {
+    const { fullname, password } = req.body;
+    const user = await User.findById(req.user.id);
+
+    if (!fullname || !password) {
+      res.locals.message = "Please, fill all the fields";
+      return res.status(400).json({ message: res.locals.message });
+    }
+
+    if (!user) {
+      res.locals.message = "User does not exist";
+      return res.status(400).json({ message: res.locals.message });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      res.locals.message = "Incorrect current password";
+      return res.status(400).json({ message: res.locals.message });
+    }
+
+    user.fullname = fullname;
+    await user.save();
+    res.locals.message = "Name changed successfully";
+    res.json({ message: res.locals.message });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put("/change-email", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findById(req.user.id);
+
+    if (!email || !password) {
+      res.locals.message = "Please, fill all the fields";
+      return res.status(400).json({ message: res.locals.message });
+    }
+
+    if (!user) {
+      res.locals.message = "User does not exist";
+      return res.status(400).json({ message: res.locals.message });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      res.locals.message = "Incorrect current password";
+      return res.status(400).json({ message: res.locals.message });
+    }
+
+    user.email = email;
+    await user.save();
+    res.locals.message = "Email changed successfully";
+    res.json({ message: res.locals.message });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.delete("/logout", async (req, res) => {
   try {
     const refreshToken = req.cookies["refreshToken"];
@@ -200,72 +294,6 @@ router.delete("/logout", async (req, res) => {
 
     res.locals.message = "logout success";
     res.json({ message: res.locals.message });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.post("/change-password", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
-  let message = "";
-  try {
-    const { password, newPassword } = req.body;
-    const user = await User.findById(req.user.id).select("+password");
-
-    if (!password || !newPassword) {
-      message = "Please, fill all the fields";
-      return res.status(400).json({ message });
-    }
-
-    if (!user) {
-      message = "User does not exist";
-      return res.status(400).json({ message });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      message = "Incorrect current password";
-      return res.status(400).json({ message });
-    }
-
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedNewPassword;
-    user.isConfigured = true;
-    await user.save();
-
-    message = "Password changed successfully";
-
-    res.json({ message });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.put("/change-name", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
-  let message = "";
-  try {
-    const { fullname, password } = req.body;
-    const user = await User.findById(req.user.id);
-
-    if (!fullname || !password) {
-      message = "Please, fill all the fields";
-      return res.status(400).json({ message });
-    }
-
-    if (!user) {
-      message = "User does not exist";
-      return res.status(400).json({ message });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      message = "Incorrect current password";
-      return res.status(400).json({ message });
-    }
-
-    user.fullname = fullname;
-    await user.save();
-    message = "Name changed successfully";
-    res.json({ message });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -321,6 +349,6 @@ async function setupUsers() {
 
 // Call the root and users setup function
 setupRootUser().then(() => console.log("Root setup complete"));
-setupUsers().then(() => console.log("Users setup complete"));
+// setupUsers().then(() => console.log("Users setup complete"));
 
 module.exports = router;

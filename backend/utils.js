@@ -1,11 +1,11 @@
+
 const getWeekNumber = async (date) => {
   const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
   const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
   return `${date.getFullYear()}-W${Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7)}`;
 };
 
-
-const getShift = async(currentHour) => {
+const getShift = async (currentHour) => {
   let shift;
   console.log(currentHour);
   if (currentHour >= 6 && currentHour < 14) {

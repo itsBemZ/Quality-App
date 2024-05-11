@@ -7,19 +7,16 @@ const ExcelJS = require("exceljs");
 const xlsx = require("xlsx");
 
 const Location = require("../models/Location.model");
-const Log = require("../models/Log.model");
-const Planning = require("../models/Planning.model");
-const Result = require("../models/Result.model");
-const Task = require("../models/Task.model");
-const User = require("../models/User.model");
+
 
 const { roleCheck } = require("../middlewares/roleCheck");
 // const { getWeekNumber } = require("../utils");
 
 const upload = multer({ dest: "uploads/" });
 
-// router
+// Locations routers
 
+// Get all locations
 router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
   try {
     const { project, family, line, crew } = req.body;
@@ -35,6 +32,76 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
 
     const data = await Location.find(query).sort(sortCriteria).exec();
     res.status(200).json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Create a location
+router.post("/", roleCheck(["Root"]), async (req, res) => {
+  try {
+    const { project, family, line, crew } = req.body;
+
+    let location = await Location.findOne({ project: project, family: family, line: line, crew: crew });
+    if (location) {
+      res.locals.message = "Location already exists";
+      return res.status(400).json({ message: res.locals.message });
+    }
+
+    location = new Location({
+      project: project,
+      family: family,
+      line: line,
+      crew: crew
+    });
+
+    await location.save();
+    res.locals.message = "Location created successfully";
+
+    res.status(201).json({ data: location, message: res.locals.message });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update a location
+router.put("/update/:id", roleCheck(["Root"]), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { project, family, line, crew } = req.body;
+
+    let location = await Location.findById(id);
+
+    if (!location) {
+      return res.status(404).json({ message: "Location not found" });
+    }
+
+    // Update the location fields if provided
+    location.project = project || location.project;
+    location.family = family || location.family;
+    location.line = line || location.line;
+    location.crew = crew || location.crew;
+
+    await location.save();
+    res.status(200).json({ data: location, message: "Location updated successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete a location
+router.delete("/delete/:id", roleCheck(["Root"]), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const location = await Location.findById(id);
+
+    if (!location) {
+      return res.status(404).json({ message: "Location not found" });
+    }
+
+    await location.remove();
+    res.status(200).json({ message: "Location deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

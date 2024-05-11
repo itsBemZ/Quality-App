@@ -1,0 +1,121 @@
+.container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 11111;
+  width: 80%;
+  background-color: black;
+  padding: 2rem 1rem;
+  border-radius: 14px;
+}
+.container h3 {
+  color: #f33716;
+  margin: 0;
+}
+.form {
+  margin-top: 1rem;
+}
+.selectsContainer {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  flex-direction: column;
+}
+.inputContainer {
+  width: 45%;
+  display: flex;
+  flex-direction: column;
+}
+.inputContainer label {
+  color: white;
+  text-transform: uppercase;
+  font-weight: 100;
+  font-size: small;
+}
+.inputContainer input[type="week"] {
+  width: 40%;
+  padding: 5px;
+  text-align: center;
+  background-color: black;
+  border: 1px solid #8a8989;
+  border-radius: 10px;
+  color: aliceblue;
+  margin: auto;
+}
+.inputContainer input[type="week"]:hover {
+  border: 1px solid #f33716;
+  color: #f33716;
+}
+.inputContainer input[type="week"]::-webkit-calendar-picker-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-left: 5px;
+  cursor: pointer;
+  background-color: aliceblue;
+}
+.form button {
+  width: 90%;
+  background-color: black;
+  border: 1px solid #8a8989;
+  border-radius: 10px;
+  color: #8a8989;
+  text-transform: uppercase;
+  padding: 10px 0;
+  cursor: pointer;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+.form button:hover {
+  background-color: rgb(31, 30, 30);
+  transform: scale(1.02);
+  border: 1px solid #f33716;
+  color: #f33716;
+}
+.tasksHolder {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+.taskType {
+  width: 32.5%;
+  color: aliceblue;
+}
+.taskType h4 {
+  text-transform: uppercase;
+  color: #f33716;
+}
+.tasks {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+.task {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.task input[type="checkbox"],
+.task label {
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.task label:hover {
+  color: #f33716 !important;
+}
+.task label {
+  width: 100%;
+}
+.task:hover {
+  transform: scale(1.03);
+}
+/* .task input[type="checkbox"]:checked{
+  background-color: #f33716;
+} */

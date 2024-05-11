@@ -31,6 +31,18 @@ const PlanningSchema = new mongoose.Schema(
       type: [PlanSchema],
       default: [],
     },
+  },
+  {
+    timestamps: {
+      currentTime: () => {
+        const now = new Date();
+        now.setHours(now.getHours() + 1);
+        return now.toLocaleString("en-US", {
+          timeZone: "Africa/Casablanca",
+          hour12: true,
+        });
+      },
+    },
   }
 );
 

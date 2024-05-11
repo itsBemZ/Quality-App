@@ -23,10 +23,11 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors({ credentials: true }));
 
-// Middlewares
+// Middlewares:
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-// Error handling for bodyParser
+
+// Error handling for bodyParser:
 app.use((err, req, res, next) => {
   if (err.type === "entity.parse.failed") {
     return res.status(400).send({ error: "Could not decode JSON" });
@@ -34,11 +35,12 @@ app.use((err, req, res, next) => {
   next();
 });
 
+
 require("./db");
 
 // Test route
-app.get("/ping", (req, res) => {
-  res.status(200).json({ status: "success" });
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "API developed by @BemZ ", status: "success" });
 });
 
 // Auth route

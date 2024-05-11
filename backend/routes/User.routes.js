@@ -6,19 +6,13 @@ const multer = require("multer");
 const ExcelJS = require("exceljs");
 const xlsx = require("xlsx");
 
-const Location = require("../models/Location.model");
-const Log = require("../models/Log.model");
-const Planning = require("../models/Planning.model");
-const Result = require("../models/Result.model");
-const Task = require("../models/Task.model");
 const User = require("../models/User.model");
 
 const { roleCheck } = require("../middlewares/roleCheck");
-// const { getWeekNumber } = require("../utils");
 
 const upload = multer({ dest: "uploads/" });
 
-// router
+// User routers
 
 router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
   try {
