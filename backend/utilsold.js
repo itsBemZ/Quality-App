@@ -530,9 +530,6 @@ const getWeekNumber = (date) => {
 // };
 
 
-
-
-
 module.exports = {
   getCurrentShift,
   excelDateToJSDate,

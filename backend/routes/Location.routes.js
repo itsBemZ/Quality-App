@@ -14,7 +14,7 @@ const { roleCheck } = require("../middlewares/roleCheck");
 
 const upload = multer({ dest: "uploads/" });
 
-// Locations routers
+// Locations routes
 
 // Get all locations
 router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
@@ -73,7 +73,8 @@ router.put("/update/:id", roleCheck(["Root"]), async (req, res) => {
     let location = await Location.findById(id);
 
     if (!location) {
-      return res.status(404).json({ message: "Location not found" });
+      res.locals.message = "Location not found";
+      return res.status(404).json({ message: res.locals.message });
     }
 
     // Update the location fields if provided
@@ -83,7 +84,8 @@ router.put("/update/:id", roleCheck(["Root"]), async (req, res) => {
     location.crew = crew || location.crew;
 
     await location.save();
-    res.status(200).json({ data: location, message: "Location updated successfully" });
+    res.locals.message = "Location updated successfully";
+    res.status(200).json({ data: location, message: res.locals.message });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -97,16 +99,19 @@ router.delete("/delete/:id", roleCheck(["Root"]), async (req, res) => {
     const location = await Location.findById(id);
 
     if (!location) {
-      return res.status(404).json({ message: "Location not found" });
+      res.locals.message = "Location not found";
+      return res.status(404).json({ message: res.locals.message });
     }
 
     await location.remove();
-    res.status(200).json({ message: "Location deleted successfully" });
+    res.locals.message = "Location deleted successfully";
+    res.status(200).json({ message: res.locals.message });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// Import locations from an Excel file
 router.post("/import/excel", upload.single("excel"), roleCheck(["Root"]), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "Please upload an Excel file." });
@@ -134,9 +139,10 @@ router.post("/import/excel", upload.single("excel"), roleCheck(["Root"]), async 
           crew: CREW,
         });
         await location.save();
+        res.locals.message = "Created new location successfully";
         results.push({
           location,
-          message: "Created new location successfully.",
+          message: res.locals.message,
         });
       } else {
         let updateNeeded = false;
@@ -158,20 +164,22 @@ router.post("/import/excel", upload.single("excel"), roleCheck(["Root"]), async 
 
         if (updateNeeded) {
           await location.save();
+          res.locals.message = "Updated location successfully";
           results.push({
             location,
-            message: "Updated location successfully.",
+            message: res.locals.message,
           });
         } else {
+          res.locals.message = "No updates required for this location";
           results.push({
             location,
-            message: "No updates required for this location.",
+            message: res.locals.message,
           });
         }
       }
     }
-
-    res.status(201).json({ results });
+    res.locals.message = "Locations created successfully";
+    res.status(201).json({ results, message: res.locals.message });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -12,23 +12,24 @@ const { roleCheck } = require("../middlewares/roleCheck");
 
 const upload = multer({ dest: "uploads/" });
 
-// User routers
+// User routes
 
+// Get all users
 router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
   try {
     const { username, role, fullname, email, isActive, isConfigured, isNotification, isBelongTo, belongTo } = req.body;
-    
+
     const matchStage = {};
 
-    if (isBelongTo === undefined || isBelongTo === true ) {
-      if (req.user.role === "Supervisor"){
+    if (isBelongTo === undefined || isBelongTo === true) {
+      if (req.user.role === "Supervisor") {
         matchStage.belongTo = req.user.username;
       } else {
       }
     }
-    
+
     if (isBelongTo !== undefined) matchStage.isBelongTo = isBelongTo ? true : false;
-    
+
     if (username) matchStage.username = username;
     if (role) matchStage.role = role;
     if (fullname) matchStage.fullname = { $regex: fullname, $options: "i" };
@@ -37,7 +38,7 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
     if (isConfigured !== undefined) matchStage.isConfigured = isConfigured ? true : false;
     if (isNotification !== undefined) matchStage.isNotification = isNotification ? true : false;
     if (belongTo) matchStage.belongTo = belongTo;
-    
+
     // Aggregate pipeline
     const pipeline = [
       { $match: matchStage },
@@ -80,71 +81,85 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
   }
 });
 
+// Add a user to a supervisor
 router.post("/belong-to/add/:id", roleCheck(["Supervisor", "Root"]), async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      res.locals.message = "User not found";
+      return res.status(404).json({ message: res.locals.message });
     }
     if (["Supervisor", "Root", "Viewer"].includes(user.role)) {
-      return res.status(403).json({ message: `Cannot set belong to for ${user.role} users` });
+      res.locals.message = `Cannot set belong to for ${user.role} users`;
+      return res.status(403).json({ message: res.locals.message });
     } else {
       if (req.user.role === "Root") {
         const check = await User.findOne({ username: req.body.belongTo });
         if (check.role === "Supervisor") {
           user.belongTo = check.username;
         } else {
-          return res.status(403).json({ message: `Cannot set belong to ${check.role} user` });
+          res.locals.message = `Cannot set belong to ${check.role} user`;
+          return res.status(403).json({ message: res.locals.message });
         }
       } else {
         user.belongTo = req.user.username;
       }
       user.isBelongTo = true;
       await user.save();
-      return res.status(200).json({ message: `User ${user.username} has been successfully assigned to ${user.belongTo}` });
+      res.locals.message = `User ${user.username} has been successfully assigned to ${user.belongTo}`;
+      return res.status(200).json({ message: res.locals.message });
     }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// Delete a user from a supervisor
 router.delete("/belong-to/delete/:id", roleCheck(["Supervisor", "Root"]), async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      res.locals.message = "User not found";
+      return res.status(404).json({ message: res.locals.message });
     }
     if (user.belongTo === req.user.username || req.user.role === "Root") {
       const belongTo = user.belongTo;
       user.isBelongTo = false;
       user.belongTo = "";
       await user.save();
-      return res.status(200).json({ message: `User ${user.username} has been successfully unassigned from ${belongTo}` });
+      res.locals.message = `User ${user.username} has been successfully unassigned from ${belongTo}`;
+      return res.status(200).json({ message: res.locals.message });
     } else {
-      return res.status(403).json({ message: `Only ${user.belongTo} User or Root Users can unassign this User.` });
+      res.locals.message = `Only ${user.belongTo} User or Root Users can unassign this User.`;
+      return res.status(403).json({ message: res.locals.message });
     }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// Delete a user
 router.delete("/delete/:id", roleCheck(["Root"]), async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      res.locals.message = "User not found";
+      return res.status(404).json({ message: res.locals.message });
     }
     if (user.role === "Root") {
-      return res.status(403).json({ message: "Cannot delete Root user" });
+      res.locals.message = "Cannot delete Root user";
+      return res.status(403).json({ message: res.locals.message });
     } else {
       await User.deleteOne({ _id: req.params.id });
-      return res.status(200).json({ message: "User deleted successfully" });
+      res.locals.message = "User deleted successfully";
+      return res.status(200).json({ message: res.locals.message });
     }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// Import users from an Excel file
 router.post("/import/excel", upload.single("excel"), roleCheck(["Root"]), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "Please upload an Excel file." });
@@ -161,22 +176,21 @@ router.post("/import/excel", upload.single("excel"), roleCheck(["Root"]), async 
         const username = row["MLLE"].toString();
         const fullname = row["FULLNAME"] ? row["FULLNAME"].toString() : "";
         const role = row["ROLE"].toString();
-        let message = "";
 
         // Check for invalid roles
         if (!["Auditor", "Supervisor", "Viewer"].includes(role)) {
-          message = `Invalid role for user ${username}`;
+          res.locals.message = `Invalid role for user ${username}`;
           //log
-          results.push({ username, error: message });
+          results.push({ username, error: res.locals.message });
           continue;
         }
 
         // Check if user already exists
         let user = await User.findOne({ username: username });
         if (user) {
-          message = `User ${username} with ${user.role} Role already exists`;
+          res.locals.message = `User ${username} with ${user.role} Role already exists`;
           //log
-          results.push({ username, error: message });
+          results.push({ username, error: res.locals.message });
           continue;
         }
 
@@ -190,12 +204,13 @@ router.post("/import/excel", upload.single("excel"), roleCheck(["Root"]), async 
         });
 
         await user.save();
-        message = `User ${username} created successfully`;
+        res.locals.message = `User ${username} created successfully`;
         //log
-        results.push({ username, message: message });
+        results.push({ username, message: res.locals.message });
       }
     }
-    res.status(201).json({ results });
+    res.locals.message = "Users created successfully";
+    res.status(201).json({ results, message: res.locals.message });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

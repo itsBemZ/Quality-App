@@ -1,68 +1,7 @@
 // morgan.js
 const morgan = require("morgan");
 const Log = require("./models/Log.model");
-
-// ANSI color codes for console
-const colors = {
-  reset: "\x1b[0m",
-  cyan: "\x1b[36m",
-  green: "\x1b[32m",
-  red: "\x1b[31m",
-  magenta: "\x1b[35m",
-  yellow: "\x1b[33m",
-  blue: "\x1b[34m",
-};
-
-// Function to get color based on method
-function getColorByMethod(method) {
-  switch (method) {
-    case "GET":
-      return colors.blue;
-    case "POST":
-      return colors.green;
-    case "PUT":
-      return colors.yellow;
-    case "DELETE":
-      return colors.red;
-    default:
-      return colors.reset;
-  }
-}
-
-// Function to get color based on status code
-function getColorByStatus(status) {
-  if (status >= 200 && status < 300) {
-    return colors.green;
-  } else if (status >= 300 && status < 400) {
-    return colors.cyan;
-  } else if (status >= 400 && status < 500) {
-    return colors.red;
-  } else if (status >= 500) {
-    return colors.magenta;
-  }
-  return colors.reset;
-}
-
-// Function to get color based on response time
-function getColorByTime(time) {
-  if (time < 100) {
-    return colors.green;
-  } else if (time < 500) {
-    return colors.yellow;
-  }
-  return colors.red;
-}
-
-// Function to get color based on content length
-function getColorByLength(length) {
-  const size = parseInt(length, 10);
-  if (size < 500) {
-    return colors.cyan;
-  } else if (size < 5000) {
-    return colors.blue;
-  }
-  return colors.magenta;
-}
+const { formatIPAddress, morganConsoleLog } = require("./utils");
 
 // Custom tokens for morgan
 morgan.token("username", (req) => (req.user ? req.user.username : "Unknown"));
@@ -86,7 +25,7 @@ const logStream = {
     const [
       username,
       isActive,
-      clientIP,
+      ip,
       messageText,
       method,
       url,
@@ -101,15 +40,9 @@ const logStream = {
       date,
     ] = message.trim().split(" | ");
 
-    const methodColor = getColorByMethod(method);
-    const statusColor = getColorByStatus(parseInt(status, 10));
-    const timeColor = getColorByTime(responseTime);
-    const lengthColor = getColorByLength(contentLength);
-    const reset = colors.reset;
+    const clientIP = formatIPAddress(ip);
 
-    // console.log(
-    //   `${date} | User: ${username} | IP: ${clientIP} | Message: ${messageText} | Method: ${methodColor}${method}${reset} | Target: ${url} | Status: ${statusColor}${status}${reset} | Time: ${timeColor}${responseTime} ms${reset} | Length: ${lengthColor}${contentLength}${reset}`
-    // );
+    morganConsoleLog(method, status, responseTime, contentLength, username, clientIP, messageText, url);
 
     const logEntry = new Log({
       username,

@@ -8,8 +8,9 @@ const Log = require("../models/Log.model");
 
 const { roleCheck } = require("../middlewares/roleCheck");
 
-// Log routers
+// Log routes
 
+// Get all logs
 router.get("/export/excel/", roleCheck(["Root"]), async (req, res) => {
   try {
     const {
@@ -18,11 +19,17 @@ router.get("/export/excel/", roleCheck(["Root"]), async (req, res) => {
       username,
       isActive,
       clientIP,
+      message,
       httpMethod,
       requestPath,
       requestBody,
+      responseStatus,
+      responseTime,
+      contentLength,
+      referrer,
+      userAgent,
       serverHost,
-      message,
+      serverPort,
       limit = 100000,
       sortField = "createdAt",
       sortOrder = "desc",
@@ -30,14 +37,20 @@ router.get("/export/excel/", roleCheck(["Root"]), async (req, res) => {
 
     const query = {};
 
-    if (isActive !== undefined) query.isActive = isActive;
     if (username) query.username = username;
+    if (isActive !== undefined) query.isActive = isActive;
     if (clientIP) query.clientIP = clientIP;
+    if (message) query.message = message;
     if (httpMethod) query.httpMethod = httpMethod;
     if (requestPath) query.requestPath = requestPath;
     if (requestBody) query.requestBody = requestBody;
+    if (responseStatus) query.responseStatus = responseStatus;
+    if (responseTime) query.responseTime = responseTime;
+    if (contentLength) query.contentLength = contentLength;
+    if (referrer) query.referrer = referrer;
+    if (userAgent) query.userAgent = userAgent;
     if (serverHost) query.serverHost = serverHost;
-    if (message) query.message = message;
+    if (serverPort) query.serverHost = serverPort;
 
     if (startDate || endDate) {
       query.createdAt = {};
@@ -62,11 +75,11 @@ router.get("/export/excel/", roleCheck(["Root"]), async (req, res) => {
     const data = await Log.find(query).sort(sortOptions).limit(parseInt(limit, 10)).exec();
 
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Access Log Data");
+    const sheet = workbook.addWorksheet("Log-Data");
 
     const headerGroups = [
-      { name: "Personnel Informations", span: 6 },
-      { name: "Request Details", span: 4 },
+      { name: "Personnel Informations", span: 7 },
+      { name: "Request Details", span: 9 },
     ];
 
     sheet.columns = [
@@ -77,11 +90,17 @@ router.get("/export/excel/", roleCheck(["Root"]), async (req, res) => {
       { header: "Is Active", key: "isActive" },
       { header: "Client IP", key: "clientIP" },
       { header: "Message", key: "message" },
+      { header: "User Agent", key: "userAgent" },
       // Request Details
       { header: "HTTP Method", key: "httpMethod" },
       { header: "Request Path", key: "requestPath" },
       { header: "Request Body", key: "requestBody" },
+      { header: "Response Status", key: "responseStatus" },
+      { header: "Response Time", key: "responseTime" },
+      { header: "Content Length", key: "contentLength" },
+      { header: "Referrer", key: "referrer" },
       { header: "Server Host", key: "serverHost" },
+      { header: "Server Port", key: "serverPort" },
     ];
 
     const applyHeaderGroups = (worksheet, groups) => {
@@ -232,11 +251,11 @@ router.get("/export/excel/", roleCheck(["Root"]), async (req, res) => {
     });
 
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    res.setHeader("Content-Disposition", `attachment; filename="Access-Log.xlsx"`);
+    res.setHeader("Content-Disposition", `attachment; filename="Log.xlsx"`);
 
     await workbook.xlsx.write(res);
 
-    // await workbook.xlsx.writeFile("excel/Access-Log.xlsx").then(() => console.log("Export complete.")).catch((error) => console.error("Something went wrong:", error));
+    // await workbook.xlsx.writeFile("excel/Log.xlsx").then(() => console.log("Export complete.")).catch((error) => console.error("Something went wrong:", error));
 
     res.end();
   } catch (err) {

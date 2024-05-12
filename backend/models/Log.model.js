@@ -63,6 +63,6 @@ const LogSchema = new mongoose.Schema(
   }
 );
 
-const Log = mongoose.model("log", LogSchema);
+const Log = mongoose.model("Log", LogSchema);
 
 module.exports = Log;

@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const bcrypt = require("bcryptjs");
 
 const multer = require("multer");
 const ExcelJS = require("exceljs");
@@ -13,8 +14,9 @@ const { roleCheck } = require("../middlewares/roleCheck");
 
 const upload = multer({ dest: "uploads/" });
 
-// Task routers
+// Task routes
 
+// Get all tasks
 router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
   try {
     const { task, sequence, category } = req.body;
@@ -45,6 +47,7 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
   }
 });
 
+// Import tasks from an Excel file
 router.post("/import/excel", upload.single("excel"), roleCheck(["Root"]), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "Please upload an Excel file." });
@@ -63,7 +66,8 @@ router.post("/import/excel", upload.single("excel"), roleCheck(["Root"]), async 
       results.push(taskData);
     }
 
-    res.status(201).json({ results });
+    res.locals.message = "Tasks created successfully";  
+    res.status(201).json({ results, message: res.locals.message });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

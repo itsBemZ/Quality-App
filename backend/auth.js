@@ -61,6 +61,14 @@ router.post("/login", async (req, res) => {
       res.locals.message = "User does not exist";
       return res.status(404).json({ message: res.locals.message });
     }
+
+    req.user = {
+      id: user._id,
+      username: user.username,
+      role: user.role,
+      isActive: user.isActive,
+    };
+
     if (!user.isActive) {
       res.locals.message = "Your account is inactive. Please contact support for more information.";
       return res.status(401).json({ message: res.locals.message });
@@ -72,14 +80,12 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: res.locals.message });
     }
 
-    req.user = {
+    const refreshToken = jwt.sign({
       id: user._id,
       username: user.username,
       role: user.role,
       isActive: user.isActive,
-    };
-
-    const refreshToken = jwt.sign({ id: user._id }, RT_SECRET, { expiresIn: "1w" });
+    }, RT_SECRET, { expiresIn: "1w" });
 
     const token = jwt.sign(
       {
@@ -130,6 +136,13 @@ router.post("/refresh", async (req, res) => {
       res.locals.message = "unauthenticated";
       return res.status(401).json({ message: res.locals.message });
     }
+
+    req.user = {
+      id: user._id,
+      username: user.username,
+      role: user.role,
+      isActive: user.isActive,
+    };
 
     const dbToken = await Token.findOne({
       username: user.username,
@@ -289,9 +302,18 @@ router.put("/change-email", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"
 router.delete("/logout", async (req, res) => {
   try {
     const refreshToken = req.cookies["refreshToken"];
+
+    const payload = jwt.verify(refreshToken, RT_SECRET);
+    if (payload) {
+      req.user = {
+        id: payload._id,
+        username: payload.username,
+        role: payload.role,
+        isActive: payload.isActive,
+      };
+    }
     await Token.findOneAndDelete({ token: refreshToken });
     res.cookie("refreshToken", "", { httpOnly: true, secure: true, maxAge: 0 });
-
     res.locals.message = "logout success";
     res.json({ message: res.locals.message });
   } catch (err) {

@@ -1,18 +1,5 @@
 const mongoose = require("mongoose");
 
-const PlanSchema = new mongoose.Schema({
-  crew: {
-    type: String,
-    ref: 'Location',
-    required: true,
-    unique: true,
-  },
-  tasks: {
-    type: [],
-    default: [],
-  },
-});
-
 const PlanningSchema = new mongoose.Schema(
   {
     username: {
@@ -27,8 +14,14 @@ const PlanningSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    plans: {
-      type: [PlanSchema],
+    crew: {
+      type: String,
+      ref: 'Location',
+      required: true,
+      unique: true,
+    },
+    tasks: {
+      type: [String],
       default: [],
     },
   },
@@ -46,6 +39,6 @@ const PlanningSchema = new mongoose.Schema(
   }
 );
 
-const Planning = mongoose.model("planning", PlanningSchema);
+const Planning = mongoose.model("Planning", PlanningSchema);
 
 module.exports = Planning;

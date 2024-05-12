@@ -45,26 +45,22 @@ const ResultSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
-    project: {
-      type: String,
-      required: true,
-    },
-
-    family: {
-      type: String,
-      required: true,
-    },
-
-    line: {
-      type: String,
-      required: true,
-    },
     crew: {
       type: String,
       required: true,
     },
-
+    line: {
+      type: String,
+      required: true,
+    },
+    family: {
+      type: String,
+      required: true,
+    },
+    project: {
+      type: String,
+      required: true,
+    },
     tasks: {
       type: [TaskSchema],
       required: true,
@@ -85,6 +81,6 @@ const ResultSchema = new mongoose.Schema(
 );
 
 
-const Result = mongoose.model("result", ResultSchema);
+const Result = mongoose.model("Result", ResultSchema);
 
 module.exports = Result;
