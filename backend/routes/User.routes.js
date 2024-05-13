@@ -17,26 +17,31 @@ const upload = multer({ dest: "uploads/" });
 // Get all users
 router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
   try {
-    const { username, role, fullname, email, isActive, isConfigured, isNotification, isBelongTo, belongTo } = req.body;
+    const { username, role, fullname, email, isActive, isConfigured, isNotification, isBelongTo, belongTo } = req.query;
 
     const matchStage = {};
 
-    if (isBelongTo === undefined || isBelongTo === true) {
-      if (req.user.role === "Supervisor") {
-        matchStage.belongTo = req.user.username;
-      } else {
-      }
+    if (isBelongTo === undefined && req.user.role === "Supervisor") {
+      matchStage.belongTo = req.user.username;
     }
 
-    if (isBelongTo !== undefined) matchStage.isBelongTo = isBelongTo ? true : false;
+    if (isBelongTo === "true" || isBelongTo === "false") {
+      matchStage.isBelongTo = isBelongTo === "true";
+    }
+    if (isActive === "true" || isActive === "false") {
+      matchStage.isActive = isActive === "true";
+    }
+    if (isConfigured === "true" || isConfigured === "false") {
+      matchStage.isConfigured = isConfigured === "true";
+    }
+    if (isNotification === "true" || isNotification === "false") {
+      matchStage.isNotification = isNotification === "true";
+    }
 
     if (username) matchStage.username = username;
     if (role) matchStage.role = role;
     if (fullname) matchStage.fullname = { $regex: fullname, $options: "i" };
     if (email) matchStage.email = { $regex: email, $options: "i" };
-    if (isActive !== undefined) matchStage.isActive = isActive ? true : false;
-    if (isConfigured !== undefined) matchStage.isConfigured = isConfigured ? true : false;
-    if (isNotification !== undefined) matchStage.isNotification = isNotification ? true : false;
     if (belongTo) matchStage.belongTo = belongTo;
 
     // Aggregate pipeline
