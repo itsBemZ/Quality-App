@@ -40,31 +40,33 @@ const logStream = {
       date,
     ] = message.trim().split(" | ");
 
-    const clientIP = formatIPAddress(ip);
+    if (method !== "OPTIONS") {
+      const clientIP = formatIPAddress(ip);
 
-    morganConsoleLog(method, status, responseTime, contentLength, username, clientIP, messageText, url);
+      morganConsoleLog(method, status, responseTime, contentLength, username, clientIP, messageText, url);
 
-    const logEntry = new Log({
-      username,
-      isActive: isActive === true,
-      clientIP,
-      message: messageText,
-      httpMethod: method,
-      requestPath: url,
-      requestBody,
-      responseStatus: status,
-      responseTime,
-      contentLength,
-      referrer,
-      userAgent,
-      serverHost,
-      serverPort: parseInt(serverPort, 10),
-    });
+      const logEntry = new Log({
+        username,
+        isActive: isActive === "true" ? true : false,
+        clientIP,
+        message: messageText,
+        httpMethod: method,
+        requestPath: url,
+        requestBody,
+        responseStatus: status,
+        responseTime,
+        contentLength,
+        referrer,
+        userAgent,
+        serverHost,
+        serverPort: parseInt(serverPort, 10),
+      });
 
-    try {
-      await logEntry.save();
-    } catch (err) {
-      console.error("Error saving log entry:", err);
+      try {
+        await logEntry.save();
+      } catch (err) {
+        console.error("Error saving log entry:", err);
+      }
     }
   },
 };

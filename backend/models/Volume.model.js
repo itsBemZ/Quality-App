@@ -4,12 +4,15 @@ const VolumeSchema = new mongoose.Schema(
   {
     crew: {
       type: String,
+      required: true,
     },
     date: {
       type: Date,
+      required: true,
     },
     output: {
       type: Number,
+      default: 0,
     },
   },
   {

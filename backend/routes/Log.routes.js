@@ -134,33 +134,34 @@ router.get("/export/excel/", roleCheck(["Root"]), async (req, res) => {
       return sheet.columns.map((column) => item[column.key]);
     });
 
-    const getMaxColumnLengths = (worksheet, tableRows) => {
-      const maxLengths = [];
+    // const getMaxColumnLengths = (worksheet, tableRows) => {
+    //   const maxLengths = [];
 
-      worksheet.columns.forEach((column, index) => {
-        maxLengths[index] = column.header.length;
-      });
+    //   worksheet.columns.forEach((column, index) => {
+    //     maxLengths[index] = column.header.length;
+    //   });
 
-      tableRows.forEach((row) => {
-        row.forEach((cell, index) => {
-          if (cell instanceof Date) {
-            maxLengths[index] = Math.max(maxLengths[index], 10);
-          } else if (cell != null) {
-            const cellLength = cell.toString().replace(/\s/g, "").length;
-            if (cellLength > maxLengths[index]) {
-              maxLengths[index] = cellLength;
-            }
-          }
-        });
-      });
+    //   tableRows.forEach((row) => {
+    //     row.forEach((cell, index) => {
+    //       if (cell instanceof Date) {
+    //         maxLengths[index] = Math.max(maxLengths[index], 10);
+    //       } else if (cell != null) {
+    //         const cellLength = cell.toString().replace(/\s/g, "").length;
+    //         if (cellLength > maxLengths[index]) {
+    //           maxLengths[index] = cellLength;
+    //         }
+    //       }
+    //     });
+    //   });
 
-      return maxLengths;
-    };
+    //   return maxLengths;
+    // };
 
-    const maxColumnLengths = getMaxColumnLengths(sheet, tableRows);
+    // const maxColumnLengths = getMaxColumnLengths(sheet, tableRows);
 
     sheet.columns.forEach((column, index) => {
-      column.width = maxColumnLengths[index] + 6;
+      // column.width = maxColumnLengths[index] + 6;
+      column.width = 20;
       const cell = sheet.getCell(2, index + 1);
       cell.value = column.header;
       cell.font = { bold: true };
@@ -186,7 +187,7 @@ router.get("/export/excel/", roleCheck(["Root"]), async (req, res) => {
       });
     });
 
-    const tableName = "AccessLogDataTable";
+    const tableName = "LogDataTable";
     const table = {
       name: tableName,
       ref: "A2",

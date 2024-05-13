@@ -32,8 +32,8 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
 
     const currentHour = new Date().getHours();
     const currentDate = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
-    const currentShiftDate =  getShiftDate(currentHour, currentDate);
-    const currentShift =  getShift(currentHour);
+    const currentShiftDate = getShiftDate(currentHour, currentDate);
+    const currentShift = getShift(currentHour);
     const currentWeek = getWeekNumber(currentShiftDate);
     const dateFromat = new Date(date);
 
@@ -43,15 +43,15 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
     if (role === "Auditor") {
       planningFilter.username = req.user.username;
       planningFilter.week = currentWeek;
-      planningFilter.shift = currentShift;
       resultFilter.date = currentShiftDate;
-      resultFilter.shift = currentShift;
+      // planningFilter.shift = currentShift;
+      // resultFilter.shift = currentShift;
     } else {
       if (username) planningFilter.username = username;
       planningFilter.week = week;
-      planningFilter.shift = shift;
+      if (shift) planningFilter.shift = shift;
       resultFilter.date = dateFromat;
-      resultFilter.shift = shift;
+      // resultFilter.shift = shift;
     }
 
     const plans = await Planning.find(planningFilter).populate({
@@ -59,28 +59,28 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
       model: "Task",
       select: "_id category sequence task",
       options: { lean: true },
-      transform: doc => {
-        doc.result = "NA";
-        return doc;
-      }
+      // transform: doc => {
+      //   doc.result = "NA";
+      //   return doc;
+      // }
     });
 
-    if (date && shift){
-      const crewsResults = await Result.find(resultFilter);
-      const plansWithResults = plans.map(crewPlan => {
-          const crewResults = crewsResults.find(cr => cr.crew === crewPlan.crew);
-          if (crewResults) {
-            crewPlan.tasks = crewPlan.tasks.map(task => {
-              const taskResult = crewResults.tasks.find(t => t.taskId._id.toString() === task._id.toString());
-              return { ...task, result: taskResult ? taskResult.result : "NA" };
-            });
-          }
-          return crewPlan;
+    console.log(plans);
+
+    const crewsResults = await Result.find(resultFilter);
+    console.log("crewsResults", crewsResults);
+    const plansWithResults = plans.map(crewPlan => {
+      const crewResults = crewsResults.find(cr => cr.crew === crewPlan.crew && cr.shift === crewPlan.shift);
+      if (crewResults) {
+        crewPlan.tasks = crewPlan.tasks.map(task => {
+          const taskResult = crewResults.tasks.find(t => t.taskId._id.toString() === task._id.toString());
+          return { ...task, result: taskResult ? taskResult.result : "NA" };
         });
-      return res.status(200).json(plansWithResults);
-    }
-    
-    res.status(200).json(plans);
+      }
+      return crewPlan;
+    });
+    return res.status(200).json(plansWithResults);
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -93,12 +93,12 @@ router.post("/", roleCheck(["Supervisor", "Root"]), async (req, res) => {
     const updatedPlans = [];
 
     for (const plan of plans) {
-      const filter = { week, username, shift, crew: plan.crew };
+      const filter = { week, username, crew: plan.crew };
 
       if (plan.tasks.length === 0) {
         await Planning.deleteOne(filter);
       } else {
-        const update = { tasks: plan.tasks };
+        const update = { shift, tasks: plan.tasks };
         await Planning.updateOne(filter, update, { upsert: true });
         updatedPlans.push({ crew: plan.crew, tasks: plan.tasks });
       }
