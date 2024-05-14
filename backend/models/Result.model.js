@@ -80,7 +80,6 @@ const ResultSchema = new mongoose.Schema(
   }
 );
 
-
 const Result = mongoose.model("Result", ResultSchema);
 
 module.exports = Result;

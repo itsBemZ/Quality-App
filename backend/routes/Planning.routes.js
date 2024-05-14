@@ -34,7 +34,7 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
     const currentDate = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
     const currentShiftDate = getShiftDate(currentHour, currentDate);
     const currentShift = getShift(currentHour);
-    const currentWeek = getWeekNumber(currentShiftDate);
+    const currentShiftweek = getWeekNumber(currentShiftDate);
     const dateFromat = new Date(date);
 
     const resultFilter = {};
@@ -42,7 +42,7 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
 
     if (role === "Auditor") {
       planningFilter.username = req.user.username;
-      planningFilter.week = currentWeek;
+      planningFilter.week = currentShiftweek;
       resultFilter.date = currentShiftDate;
       // planningFilter.shift = currentShift;
       // resultFilter.shift = currentShift;
@@ -59,10 +59,10 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
       model: "Task",
       select: "_id category sequence task",
       options: { lean: true },
-      // transform: doc => {
-      //   doc.result = "NA";
-      //   return doc;
-      // }
+      transform: doc => {
+        doc.result = "NA";
+        return doc;
+      }
     });
 
     console.log(plans);
