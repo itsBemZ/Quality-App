@@ -92,9 +92,19 @@ router.post("/", roleCheck(["Supervisor", "Root"]), async (req, res) => {
     const { username, week, shift, plans } = req.body;
     const updatedPlans = [];
 
+    
+     // Find all planning documents for the given username and week
+     const plannings = await Planning.find({ username, week });
+
+     // Update the shift for each planning document
+     for (const planning of plannings) {
+       planning.shift = shift;
+       await planning.save();
+     }
+    
     for (const plan of plans) {
       const filter = { week, username, crew: plan.crew };
-
+      
       if (plan.tasks.length === 0) {
         await Planning.deleteOne(filter);
       } else {
