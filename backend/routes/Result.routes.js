@@ -10,7 +10,6 @@ const Task = require("../models/Task.model");
 const { roleCheck } = require("../middlewares/roleCheck");
 const { getWeekNumber, getShift, getShiftDate } = require("../utils");
 
-
 // Result routes
 
 // Create a result
@@ -180,7 +179,81 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
   }
 });
 
-router.get("/rrr", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
+router.get("/ppp/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
+  try {
+    const { role } = req.user;
+    const { week, date, shift, startDate, endDate,  project, family, line, crew, tasks, user  } = req.query;
+
+    const missingFields = [];
+    if (role !== "Auditor") {
+      if (!week) missingFields.push("week");
+      if (!date) missingFields.push("date");
+      if (!shift) missingFields.push("shift");
+    }
+
+    if (missingFields.length > 0) {
+      res.locals.message = "Missing required fields: " + missingFields.join(", ");
+      return res.status(400).json({ message: res.locals.message });
+    }
+
+    const currentHour = new Date().getHours();
+    const currentDate = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+    const currentShiftDate = getShiftDate(currentHour, currentDate);
+    const currentShift = getShift(currentHour);
+    const currentShiftweek = getWeekNumber(currentShiftDate);
+    const dateFromat = new Date(date);
+
+    const resultFilter = {};
+    const planningFilter = {};
+
+    if (role === "Auditor") {
+      planningFilter.username = req.user.username;
+      planningFilter.week = currentShiftweek;
+      resultFilter.date = currentShiftDate;
+      // planningFilter.shift = currentShift;
+      // resultFilter.shift = currentShift;
+    } else {
+      if (username) planningFilter.username = username;
+      planningFilter.week = week;
+      if (shift) planningFilter.shift = shift;
+      resultFilter.date = dateFromat;
+      // resultFilter.shift = shift;
+    }
+
+    const plans = await Planning.find(planningFilter).populate({
+      path: "tasks",
+      model: "Task",
+      select: "_id category sequence task",
+      options: { lean: true },
+      transform: doc => {
+        doc.result = "NA";
+        return doc;
+      }
+    });
+
+    console.log(plans);
+
+    const crewsResults = await Result.find(resultFilter);
+    console.log("crewsResults", crewsResults);
+    const plansWithResults = plans.map(crewPlan => {
+      const crewResults = crewsResults.find(cr => cr.crew === crewPlan.crew && cr.shift === crewPlan.shift);
+      if (crewResults) {
+        crewPlan.tasks = crewPlan.tasks.map(task => {
+          const taskResult = crewResults.tasks.find(t => t.taskId._id.toString() === task._id.toString());
+          return { ...task, result: taskResult ? taskResult.result : "NA" };
+        });
+      }
+      return crewPlan;
+    });
+    return res.status(200).json(plansWithResults);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+router.get("/rrr/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
   try {
     const { week, startDate, endDate, date, shift, project, family, line, crew, tasks, username } = req.body;
 

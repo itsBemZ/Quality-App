@@ -35,7 +35,6 @@ app.use((err, req, res, next) => {
   next();
 });
 
-
 require("./db");
 
 // Test route
