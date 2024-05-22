@@ -65,10 +65,11 @@ router.get("/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (r
       }
     });
 
-    console.log(plans);
+    // console.log(plans);
 
     const crewsResults = await Result.find(resultFilter);
-    console.log("crewsResults", crewsResults);
+    // console.log(crewsResults);
+    // console.log("crewsResults", crewsResults);
     const plansWithResults = plans.map(crewPlan => {
       const crewResults = crewsResults.find(cr => cr.crew === crewPlan.crew && cr.shift === crewPlan.shift);
       if (crewResults) {
@@ -92,7 +93,6 @@ router.post("/", roleCheck(["Supervisor", "Root"]), async (req, res) => {
     const { username, week, shift, plans } = req.body;
     const updatedPlans = [];
 
-    
      // Find all planning documents for the given username and week
      const plannings = await Planning.find({ username, week });
 

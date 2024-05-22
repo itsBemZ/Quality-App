@@ -213,7 +213,7 @@ router.get("/ppp/", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), asyn
       // planningFilter.shift = currentShift;
       // resultFilter.shift = currentShift;
     } else {
-      if (username) planningFilter.username = username;
+      if (user) planningFilter.username = user;
       planningFilter.week = week;
       if (shift) planningFilter.shift = shift;
       resultFilter.date = dateFromat;

@@ -1,0 +1,1061 @@
+{
+	"info": {
+		"_postman_id": "7f6bbbab-7618-4c5a-8fb3-049e17d87cf6",
+		"name": "Quality Tracker Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26833603",
+		"_collection_link": "https://aptiv-m4fa.postman.co/workspace/Team-Workspace~f64fa6a7-9565-443b-87bf-668d3bf539a5/collection/26833603-7f6bbbab-7618-4c5a-8fb3-049e17d87cf6?action=share&source=collection_link&creator=26833603"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Coming Soon!",
+					"item": [
+						{
+							"name": "auth/change-name",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"fullname\":\"Zouhair Benelmekki\",\r\n    \"password\": \"quality@aptiv.com\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/auth/change-name/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"auth",
+										"change-name",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "auth/change-image",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "image",
+											"type": "file",
+											"src": []
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/auth/change-image/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"auth",
+										"change-image",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "auth/register",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"Auditor\",\r\n    \"password\": \"Auditor\",\r\n    \"role\": \"Auditor\" // \"Viewer\", \"Auditor\", \"Supervisor\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "auth/login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const jsonData = pm.response.json();",
+									"const token = jsonData.token;",
+									"pm.globals.set(\"token\", token);",
+									"console.log(\"token:\", pm.globals.get(\"token\"));",
+									"const message = jsonData.message;",
+									"console.log(\"message:\", message);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"root\",\r\n    \"password\": \"quality@aptiv.com\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "auth/user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/user/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"user",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "auth/logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/logout/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"logout",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "auth/refresh",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const jsonData = pm.response.json();",
+									"const token = jsonData.token;",
+									"pm.globals.set(\"token\", token);",
+									"console.log(\"token:\", pm.globals.get(\"token\"));",
+									"const message = jsonData.message;",
+									"console.log(\"message:\", message);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/refresh/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"refresh",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "auth/change-password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"password\":\"123\",\r\n    \"newPassword\":\"quality@aptiv.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/change-password/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"change-password",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Location",
+			"item": [
+				{
+					"name": "location",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/location/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"location",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "location/import/excel",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "excel",
+									"type": "file",
+									"src": "/C:/Users/soukayna/Desktop/Quality-App-main/backend/excel/Setup.xlsx"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/location/import/excel/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"location",
+								"import",
+								"excel",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Task",
+			"item": [
+				{
+					"name": "task",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/task/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"task",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "task/import/excel",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "excel",
+									"type": "file",
+									"src": "/C:/Users/soukayna/Desktop/Quality-App-main/backend/excel/Setup.xlsx"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/task/import/excel/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"task",
+								"import",
+								"excel",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "user",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/user/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								""
+							],
+							"query": [
+								{
+									"key": "role",
+									"value": "Auditor",
+									"disabled": true
+								},
+								{
+									"key": "isBelongTo",
+									"value": "false",
+									"disabled": true
+								},
+								{
+									"key": "belongTo",
+									"value": "Supervisor",
+									"disabled": true
+								},
+								{
+									"key": "username",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "fullname",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "email",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "isActive",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "isConfigured",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "isNotification",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "user/delete/:id",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/user/delete/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"delete",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "6639de3e9f56033f721458a4"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "user/belong-to/add/:id",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"belongTo\": \"Supervisor\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/user/belong-to/add/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"belong-to",
+								"add",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "6639e6ce3e0da5ee7fbdac95"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "user/belong-to/delete/:id",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/user/belong-to/delete/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"belong-to",
+								"delete",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "user/import/excel",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "excel",
+									"type": "file",
+									"src": "/C:/Users/soukayna/Desktop/Quality-App-main/backend/excel/Setup.xlsx"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/user/import/excel/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"import",
+								"excel",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Planning",
+			"item": [
+				{
+					"name": "planning",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/planning/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"planning",
+								""
+							],
+							"query": [
+								{
+									"key": "week",
+									"value": "2024-W20",
+									"disabled": true
+								},
+								{
+									"key": "shift",
+									"value": "morning",
+									"disabled": true
+								},
+								{
+									"key": "username",
+									"value": "367",
+									"disabled": true
+								},
+								{
+									"key": "date",
+									"value": "2024-05-13",
+									"disabled": true
+								},
+								{
+									"key": "crew",
+									"value": "K14A",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "planning",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"367\",\r\n    \"week\": \"2024-W20\",\r\n    \"shift\": \"evening\",\r\n    \"plans\": [\r\n        {\r\n            \"crew\": \"K03D\",\r\n            \"tasks\": [\r\n                \"663e834ccafd02c773197279\",\r\n                \"663e834ccafd02c77319727b\"\r\n            ]\r\n        },\r\n        {\r\n            \"crew\": \"K03A\",\r\n            \"tasks\": [\r\n                \"663e834ccafd02c77319727d\",\r\n                \"663e834ccafd02c77319727f\"\r\n            ]\r\n        },\r\n        {\r\n            \"crew\": \"K03C\",\r\n            \"tasks\": [\r\n                \"663e834ccafd02c77319727f\"\r\n            ]\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/planning/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"planning",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Result",
+			"item": [
+				{
+					"name": "result",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"date\": \"2024-05-12\" ,\r\n    \"shift\": \"M\",\r\n    \"crew\": \"K03A\",\r\n    \"taskId\": \"663e834ccafd02c77319727d\",\r\n    \"result\": \"OK\",\r\n    \"username\": \"41\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/result/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"result",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "result",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/result/?date&shift&project&family&crew&username",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"result",
+								""
+							],
+							"query": [
+								{
+									"key": "date",
+									"value": null
+								},
+								{
+									"key": "shift",
+									"value": null
+								},
+								{
+									"key": "project",
+									"value": null
+								},
+								{
+									"key": "family",
+									"value": null
+								},
+								{
+									"key": "crew",
+									"value": null
+								},
+								{
+									"key": "username",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "result/r",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"\",\r\n    \"week\": \"\",\r\n    \"shift\": \"\",\r\n    \"crew\": \"\",\r\n    \"task\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/result/r/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"result",
+								"r",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Log",
+			"item": [
+				{
+					"name": "log/export/excel",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/log/export/excel/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"log",
+								"export",
+								"excel",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8088/api",
+			"type": "string"
+		},
+		{
+			"key": "base_url",
+			"value": "http://10.236.150.30:8088/api",
+			"type": "string",
+			"disabled": true
+		},
+		{
+			"key": "base_url",
+			"value": "http://192.168.1.2:8088/api",
+			"disabled": true
+		},
+		{
+			"key": "base_url",
+			"value": "http://10.236.148.13:8082/api",
+			"type": "string",
+			"disabled": true
+		}
+	]
+}
