@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const TargetSchema = new mongoose.Schema(
   {
-    for: {
+    type: {
       type: String,
       required: true,
     },

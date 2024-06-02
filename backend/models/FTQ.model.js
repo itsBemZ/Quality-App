@@ -22,10 +22,6 @@ const FTQSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    line: {
-      type: String,
-      required: true,
-    },
     family: {
       type: String,
       required: true,
@@ -51,16 +47,12 @@ const FTQSchema = new mongoose.Schema(
       default: "",
     },
     voie: {
-      type: Number,
-      default: null,
+      type: String,
+      default: "",
     },
     details: {
       type: String,
       default: "",
-    },
-    qualityClass: {
-      type: Number,
-      default: null,
     },
   },
   {

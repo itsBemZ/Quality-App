@@ -14,7 +14,7 @@ const VolumeSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
-    output: {
+    volume: {
       type: Number,
       default: 0,
     },

@@ -14,6 +14,10 @@ const ABSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    month: {
+      type: Number,
+      required: true,
+    },
     crew: {
       type: String,
       required: true,
@@ -32,7 +36,7 @@ const ABSchema = new mongoose.Schema(
     },
     reason: {
       type: String,
-      default: null,
+      default: "",
     },
   },
   {

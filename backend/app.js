@@ -54,6 +54,8 @@ const planning = require("./routes/Planning.routes");
 const result = require("./routes/Result.routes");
 const task = require("./routes/Task.routes");
 const user = require("./routes/User.routes");
+const imports = require("./routes/Imports.routes");
+const indicator = require("./routes/Indicator.routes");
 
 // Use the routes
 app.use("/api/location", location);
@@ -62,6 +64,8 @@ app.use("/api/planning", planning);
 app.use("/api/result", result);
 app.use("/api/task", task);
 app.use("/api/user", user);
+app.use("/api/import", imports);
+app.use("/api/indicator", indicator);
 
 app.listen(PORT, () => {
   console.log(
