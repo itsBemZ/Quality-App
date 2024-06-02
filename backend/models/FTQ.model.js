@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const ProblemSchema = new mongoose.Schema(
+const FTQSchema = new mongoose.Schema(
   {
     source: {
       type: String,
@@ -42,21 +42,9 @@ const ProblemSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    PosteType: {
+    poste: {
       type: String,
       default: "",
-    },
-    PosteNumber: {
-      type: Number,
-      default: null,
-    },
-    Poste: {
-      type: String,
-      default: "",
-    },
-    operator: {
-      type: Number,
-      default: null,
     },
     connector: {
       type: String,
@@ -70,41 +58,9 @@ const ProblemSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    auditor: {
-      type: Number,
-      default: null,
-    },
     qualityClass: {
       type: Number,
       default: null,
-    },
-    drawingNumber: {
-      type: Number,
-      default: null,
-    },
-    reference: {
-      type: Number,
-      default: null,
-    },
-    autorefusNumber: {
-      type: Number,
-      default: null,
-    },
-    openDate: {
-      type: Date,
-      default: null,
-    },
-    closeDate: {
-      type: Date,
-      default: null,
-    },
-    repairer: {
-      type: String,
-      default: "",
-    },
-    status: {
-      type: String,
-      default: "",
     },
   },
   {
@@ -112,6 +68,6 @@ const ProblemSchema = new mongoose.Schema(
   }
 );
 
-const Problem = mongoose.model("Problem", ProblemSchema);
+const FTQ = mongoose.model("FTQ", FTQSchema);
 
-module.exports = Problem;
+module.exports = FTQ;

@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const VolumeSchema = new mongoose.Schema(
   {
+    family: {
+      type: String,
+      required: true,
+    },
     crew: {
       type: String,
       required: true,
