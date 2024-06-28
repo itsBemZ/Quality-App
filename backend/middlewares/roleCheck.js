@@ -22,6 +22,7 @@ const roleCheck = (roles) => async (req, res, next) => {
         res.locals.message = "Your account is not active. Please contact support for more information.";
         return res.status(403).json({ message: res.locals.message });
       }
+      
     } else {
       res.locals.message = "You don't have permission to access this resource.";
       return res.status(403).json({ message: res.locals.message });

@@ -14,49 +14,60 @@ const ROOT_PSD = process.env.ROOT_PSD;
 const JWT_SECRET = process.env.JWT_SECRET;
 const RT_SECRET = process.env.RT_SECRET;
 
-router.post("/register", roleCheck(["Supervisor", "Root"]), async (req, res) => {
-  const { username, password, role, fullname, email } = req.body;
+router.post(
+  "/register",
+  roleCheck(["Supervisor", "Root"]),
+  async (req, res) => {
+    const { username, password, role, fullname, email } = req.body;
 
-  try {
-    if (role === "Root") {
-      res.locals.message = "Invalid role";
-      return res.status(400).json({ message: res.locals.message });
+    try {
+      if (role === "Root") {
+        res.locals.message = "Invalid role";
+        return res.status(400).json({ message: res.locals.message });
+      }
+
+      if (req.user.role === "Supervisor" && role === "Supervisor") {
+        res.locals.message =
+          "Cannot Create user with Supervisor role, only Root can do that";
+        return res.status(400).json({ message: res.locals.message });
+      }
+
+      let user = await User.findOne({ username: username });
+      if (user) {
+        res.locals.message = "User already exists";
+        return res.status(400).json({ message: res.locals.message });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      user = new User({
+        username: username,
+        password: hashedPassword,
+        role: role,
+        fullname: fullname,
+        email: email,
+      });
+
+      await user.save();
+      res.locals.message = "User created successfully";
+      res
+        .status(201)
+        .json({
+          user: { username, role, fullname, email },
+          message: res.locals.message,
+        });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
-
-    if (req.user.role === "Supervisor" && role === "Supervisor") {
-      res.locals.message = "Cannot Create user with Supervisor role, only Root can do that";
-      return res.status(400).json({ message: res.locals.message });
-    }
-
-    let user = await User.findOne({ username: username });
-    if (user) {
-      res.locals.message = "User already exists";
-      return res.status(400).json({ message: res.locals.message });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    user = new User({
-      username: username,
-      password: hashedPassword,
-      role: role,
-      fullname: fullname,
-      email: email,
-    });
-
-    await user.save();
-    res.locals.message = "User created successfully";
-    const [password, ...data] = user;
-    res.status(201).json({ user, message: res.locals.message });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
-});
+);
 
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
   try {
-    let user = await User.findOne({ username: username }).select("+password").exec();
+    let user = await User.findOne({ username: username })
+      .select("+password")
+      .exec();
     if (!user) {
       res.locals.message = "User does not exist";
       return res.status(404).json({ message: res.locals.message });
@@ -70,7 +81,8 @@ router.post("/login", async (req, res) => {
     };
 
     if (!user.isActive) {
-      res.locals.message = "Your account is inactive. Please contact support for more information.";
+      res.locals.message =
+        "Your account is inactive. Please contact support for more information.";
       return res.status(401).json({ message: res.locals.message });
     }
 
@@ -80,12 +92,16 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: res.locals.message });
     }
 
-    const refreshToken = jwt.sign({
-      id: user._id,
-      username: user.username,
-      role: user.role,
-      isActive: user.isActive,
-    }, RT_SECRET, { expiresIn: "1w" });
+    const refreshToken = jwt.sign(
+      {
+        id: user._id,
+        username: user.username,
+        role: user.role,
+        isActive: user.isActive,
+      },
+      RT_SECRET,
+      { expiresIn: "1w" }
+    );
 
     const token = jwt.sign(
       {
@@ -204,100 +220,111 @@ router.get("/user", async (req, res) => {
   }
 });
 
-router.post("/change-password", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
-  try {
+router.post(
+  "/change-password",
+  roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]),
+  async (req, res) => {
+    try {
+      const { password, newPassword } = req.body;
+      const user = await User.findById(req.user.id).select("+password");
 
-    const { password, newPassword } = req.body;
-    const user = await User.findById(req.user.id).select("+password");
+      if (!password || !newPassword) {
+        res.locals.message = "Please, fill all the fields";
+        return res.status(400).json({ message: res.locals.message });
+      }
 
-    if (!password || !newPassword) {
-      res.locals.message = "Please, fill all the fields";
-      return res.status(400).json({ message: res.locals.message });
+      if (!user) {
+        res.locals.message = "User does not exist";
+        return res.status(400).json({ message: res.locals.message });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        res.locals.message = "Incorrect current password";
+        return res.status(400).json({ message: res.locals.message });
+      }
+
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+      user.password = hashedNewPassword;
+      user.isConfigured = true;
+      await user.save();
+
+      res.locals.message = "Password changed successfully";
+
+      res.json({ message: res.locals.message });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
-
-    if (!user) {
-      res.locals.message = "User does not exist";
-      return res.status(400).json({ message: res.locals.message });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      res.locals.message = "Incorrect current password";
-      return res.status(400).json({ message: res.locals.message });
-    }
-
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedNewPassword;
-    user.isConfigured = true;
-    await user.save();
-
-    res.locals.message = "Password changed successfully";
-
-    res.json({ message: res.locals.message });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
-});
+);
 
-router.put("/change-name", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
-  try {
-    const { fullname, password } = req.body;
-    const user = await User.findById(req.user.id);
+router.put(
+  "/change-name",
+  roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]),
+  async (req, res) => {
+    try {
+      const { fullname, password } = req.body;
+      const user = await User.findById(req.user.id);
 
-    if (!fullname || !password) {
-      res.locals.message = "Please, fill all the fields";
-      return res.status(400).json({ message: res.locals.message });
+      if (!fullname || !password) {
+        res.locals.message = "Please, fill all the fields";
+        return res.status(400).json({ message: res.locals.message });
+      }
+
+      if (!user) {
+        res.locals.message = "User does not exist";
+        return res.status(400).json({ message: res.locals.message });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        res.locals.message = "Incorrect current password";
+        return res.status(400).json({ message: res.locals.message });
+      }
+
+      user.fullname = fullname;
+      await user.save();
+      res.locals.message = "Name changed successfully";
+      res.json({ message: res.locals.message });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
-
-    if (!user) {
-      res.locals.message = "User does not exist";
-      return res.status(400).json({ message: res.locals.message });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      res.locals.message = "Incorrect current password";
-      return res.status(400).json({ message: res.locals.message });
-    }
-
-    user.fullname = fullname;
-    await user.save();
-    res.locals.message = "Name changed successfully";
-    res.json({ message: res.locals.message });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
-});
+);
 
-router.put("/change-email", roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]), async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findById(req.user.id);
+router.put(
+  "/change-email",
+  roleCheck(["Viewer", "Auditor", "Supervisor", "Root"]),
+  async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      const user = await User.findById(req.user.id);
 
-    if (!email || !password) {
-      res.locals.message = "Please, fill all the fields";
-      return res.status(400).json({ message: res.locals.message });
+      if (!email || !password) {
+        res.locals.message = "Please, fill all the fields";
+        return res.status(400).json({ message: res.locals.message });
+      }
+
+      if (!user) {
+        res.locals.message = "User does not exist";
+        return res.status(400).json({ message: res.locals.message });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        res.locals.message = "Incorrect current password";
+        return res.status(400).json({ message: res.locals.message });
+      }
+
+      user.email = email;
+      await user.save();
+      res.locals.message = "Email changed successfully";
+      res.json({ message: res.locals.message });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
-
-    if (!user) {
-      res.locals.message = "User does not exist";
-      return res.status(400).json({ message: res.locals.message });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      res.locals.message = "Incorrect current password";
-      return res.status(400).json({ message: res.locals.message });
-    }
-
-    user.email = email;
-    await user.save();
-    res.locals.message = "Email changed successfully";
-    res.json({ message: res.locals.message });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
-});
+);
 
 router.delete("/logout", async (req, res) => {
   try {

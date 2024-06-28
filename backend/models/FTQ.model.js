@@ -6,6 +6,10 @@ const FTQSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    month: {
+      type: Number,
+      required: true,
+    },
     week: {
       type: String,
       required: true,

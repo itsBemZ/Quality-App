@@ -110,12 +110,13 @@ const excelDateToJSDate = (serial) => {
   const minutes = Math.floor(total_seconds / 60) % 60;
 
   return new Date(
-    date_info.getFullYear(),
-    date_info.getMonth(),
-    date_info.getDate(),
-    hours,
-    minutes,
-    seconds
+    date_info,
+    // date_info.getFullYear(),
+    // date_info.getMonth(),
+    // date_info.getDate(),
+    // hours,
+    // minutes,
+    // seconds
   );
 };
 

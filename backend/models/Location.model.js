@@ -15,6 +15,10 @@ const LocationSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
+    headcount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: {
