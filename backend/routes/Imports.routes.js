@@ -132,11 +132,12 @@ router.post(
       const xlsVolumeResults = [];
 
       for (const row of xlsVolume) {
+        const project = row["Project"];
         const family = row["Family"];
         const crew = row["Crew"];
 
         const dates = Object.keys(row).filter(
-          (key) => key !== "Family" && key !== "Crew"
+          (key) => key !== "Project" && key !== "Family" && key !== "Crew"
         );
 
         for (const dateKey of dates) {
@@ -149,6 +150,7 @@ router.post(
           const date = new Date(dateKey);
 
           if (
+            project &&
             family &&
             crew &&
             date instanceof Date &&
@@ -156,6 +158,7 @@ router.post(
           ) {
             // Update or create Volume
             const volumeData = {
+              project,
               family,
               crew,
               date,
@@ -163,7 +166,7 @@ router.post(
             };
 
             const volumeDB = await Volume.findOneAndUpdate(
-              { family, crew, date },
+              { project, family, crew, date },
               { $set: volumeData },
               { new: true, upsert: true }
             );
