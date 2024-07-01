@@ -26,10 +26,6 @@ const FTQSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    family: {
-      type: String,
-      required: true,
-    },
     project: {
       type: String,
       required: true,

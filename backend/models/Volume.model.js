@@ -6,10 +6,6 @@ const VolumeSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    family: {
-      type: String,
-      required: true,
-    },
     crew: {
       type: String,
       required: true,
